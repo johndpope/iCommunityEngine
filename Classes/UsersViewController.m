@@ -15,7 +15,7 @@
 
 
 @implementation UsersViewController
-@synthesize users , tableView,pagedArray;
+@synthesize users , myTableView,pagedArray;
 @synthesize fetchBtn;
 @synthesize footer;
 @synthesize appDelegate;
@@ -29,25 +29,26 @@
 		appDelegate = GET_APP_DELEGATE();
 		pagedArray = [[NSMutableArray alloc]initWithCapacity:0];
 		users = [[NSMutableArray alloc]initWithCapacity:0];
-
-
-		[self.tableView setDelegate:self];
-		[self.tableView setDataSource:self];
-		[self.tableView setBackgroundColor:[UIColor clearColor]];
+		
+		myTableView = [[UITableView alloc] initWithFrame:VIEW_FRAME_WITH_TABBAR] ;
+		[myTableView setDelegate:self];
+		[myTableView setDataSource:self];
+		//[myTableView setBackgroundColor:[UIColor whiteColor]];
+		[self.view addSubview:myTableView];
+		
 		[self.navigationItem setTitle:@"Community Engine Users"];
 		[self.navigationItem setHidesBackButton:YES];
 		[self.navigationItem.rightBarButtonItem = [UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(refreshButtonWasPressed)];
 		
-		[self addFetchButton];
 		
 		[self loadUsers];
-		[self setHeader];
+		//[self setHeader];
 	}
 	
 	return self;
 }
 
-
+/*
 - (void)setHeader {
 	UIView *containerView =	[[[UIView alloc] initWithFrame:CGRectMake(0, 0, 320, 23)] autorelease];
 	UIImageView *headerBg = [[[UIImageView alloc] initWithImage:[UIImage imageNamed:@"library_titbg.png"]] autorelease];
@@ -61,8 +62,8 @@
 	headerLabel.font = [UIFont boldSystemFontOfSize:18];
 	headerLabel.backgroundColor = [UIColor clearColor];
 	[containerView addSubview:headerLabel];
-	self.tableView.tableHeaderView = containerView;
-}
+	myTableView.tableHeaderView = containerView;
+}*/
 
 
 - (void)viewDidLoad
@@ -70,8 +71,8 @@
     [super viewDidLoad];
 	
 	// Configure the table view.
-    self.tableView.backgroundColor = DARK_BACKGROUND;
-    self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+    myTableView.backgroundColor = DARK_BACKGROUND;
+    myTableView.separatorStyle = UITableViewCellSeparatorStyleNone;
 	
     
 }
@@ -90,20 +91,16 @@
     }
 }
 
-static int page = 1;
+static int page = 0;
 - (void) loadUsers {
-	
-	self.users = [NSMutableArray arrayWithArray:[User findAllRemote]];
-	
-	//[self.tableView reloadData];
 	
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	
 	
-	/*if ([users count] == 0)
-	{
-		page = page + 1;
-	}*/
+	//if ([users count] == 0)
+	//{
+	//	page = page + 1;
+	//}
 	
 	NSString *strPage = [NSString stringWithFormat: @"%d", page];
 
@@ -133,12 +130,13 @@ static int page = 1;
 	[appDelegate.activityIndicator stopAnimating];
 	
 	
-	if ([users count] >= PAGINATION_COUNT)
+	if ([users count] > PAGINATION_COUNT)
 	{
 		[self addFetchButton];
 	}
+	self.users = [NSMutableArray arrayWithArray:array];
 	
-	[self.tableView reloadData];
+	[myTableView reloadData];
 		
 	
 }
@@ -158,17 +156,18 @@ static int page = 1;
 
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    NSLog(@"number of rows");
     return [users count];
 }
 
 
 
-- (UITableViewCell *)tableView:(UITableView *)aTableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     
     static NSString *CellIdentifier = @"Cell";
 	
 	
-    ApplicationCell *cell = (ApplicationCell *)[tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+    CompositeSubviewBasedApplicationCell *cell = (CompositeSubviewBasedApplicationCell *)[tableView dequeueReusableCellWithIdentifier:CellIdentifier];
 	
     if (cell == nil)
     {
@@ -203,7 +202,7 @@ static int page = 1;
 	ViewUserController *aController = [[[ViewUserController alloc] initWithStyle:UITableViewStyleGrouped] autorelease];
 	aController.user = (User *)[users objectAtIndex:indexPath.row];
 	
-	 [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
+	 [myTableView deselectRowAtIndexPath:indexPath animated:YES];
 	[self.navigationController pushViewController:aController animated:YES];
 	
 }
@@ -236,7 +235,7 @@ forRowAtIndexPath:(NSIndexPath *)indexPath {
 
 
 - (void)fetchHandler {
-//    [fetchBtn startAnimating];
+    [fetchBtn startAnimating];
     [self performSelectorInBackground:@selector(loadUsers) withObject:nil];
 }
 
@@ -264,7 +263,7 @@ forRowAtIndexPath:(NSIndexPath *)indexPath {
     headerLabel.backgroundColor = [UIColor clearColor];
     [containerView addSubview:headerLabel];
 	
-	self.tableView.tableFooterView = fetchBtn;
+	myTableView.tableFooterView = fetchBtn;
 	
 	NSLog(@"fetchbutton");
     //[commentsTableView.tableHeaderView addSubview:];

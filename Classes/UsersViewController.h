@@ -9,9 +9,9 @@
 @property (nonatomic , retain) objective_resourceAppDelegate* appDelegate;
 @property (nonatomic , retain) NSMutableArray* users;
 @property (nonatomic , retain) NSMutableArray* pagedArray;
-@property(nonatomic , retain) UITableView *tableView;
+@property (nonatomic, retain) IBOutlet UITableView *myTableView;
 @property (nonatomic, retain) UIButton *fetchBtn;
-@property (retain, nonatomic) UIView *footer;
+@property (nonatomic, retain) UIView *footer;
 - (void) onLoadUsers;
 
 @end
