@@ -1,7 +1,7 @@
 @class FetchButtonView;
 @class objective_resourceAppDelegate;
 
-@interface UsersViewController : UITableViewController <UITableViewDelegate, UITableViewDataSource> {
+@interface UsersViewController : UIViewController <UITableViewDelegate, UITableViewDataSource> {
 
 }
 

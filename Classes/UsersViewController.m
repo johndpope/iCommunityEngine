@@ -91,52 +91,54 @@
     }
 }
 
-static int page = 0;
+static int page = 1;
 - (void) loadUsers {
 	
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	
-	
-	//if ([users count] == 0)
-	//{
-	//	page = page + 1;
-	//}
-	
+	page = 1;
 	NSString *strPage = [NSString stringWithFormat: @"%d", page];
-
-	
 	[User findRemoteWithCallback:@selector(onLoadUsers:) delegate:self params:[NSString stringWithFormat:@"?page=%@",strPage]];
-	[appDelegate.lblStatus setText:@"loading users"];
-	[appDelegate.activityIndicator startAnimating];
-	[pool release];
+	
 	
 	
 }
 
 - (void) onLoadUsers:(NSArray *)array{
 	
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	
 	NSLog(@"page %d",page);
 	NSMutableArray *objectsToAdd =   [[NSMutableArray alloc]initWithCapacity:0];
 	objectsToAdd = [NSMutableArray arrayWithArray:array];
-	NSLog(@"onLoadUsers called objectsToAdd... %@",objectsToAdd);
+	//NSLog(@"onLoadUsers called objectsToAdd... %@",objectsToAdd);
 	
 	[self.pagedArray  addObjectsFromArray:objectsToAdd];
-	NSLog(@"onLoadUsers called pagedArray... %@",pagedArray);
+	//NSLog(@"onLoadUsers called pagedArray... %@",pagedArray);
+	//for refresh btn
+	if (page==1) {
+		[users removeAllObjects];
+	}
 	
 	[self.users  addObjectsFromArray:pagedArray];
-	NSLog(@"users called users... %@",users);
-	NSLog(@"self.users  count %d",[users count]);	
+	//NSLog(@"users called users... %@",users);
+	//NSLog(@"self.users  count %d",[users count]);	
 	
 	[appDelegate.activityIndicator stopAnimating];
 	
 	
-	if ([users count] > PAGINATION_COUNT)
+	if ([objectsToAdd count]  > 0)
 	{
-		[self addFetchButton];
+		[myTableView reloadData];
+		//[reviewTableView reloadSections:[NSIndexSet indexSetWithIndex:COMMENT_SECTION] withRowAnimation:UITableViewRowAnimationBottom];
+		[fetchBtn stopAnimating];
 	}
-	self.users = [NSMutableArray arrayWithArray:array];
 	
-	[myTableView reloadData];
+	if ([objectsToAdd count]  != PAGINATION_COUNT){
+		[fetchBtn hide];
+	}
+
+	 [pool release];
+	
+
 		
 	
 }
@@ -234,9 +236,13 @@ forRowAtIndexPath:(NSIndexPath *)indexPath {
 }
 
 
-- (void)fetchHandler {
+- (void)fetchUsers {
+	
+     page = page + 1;	
+    NSString *strPage = [NSString stringWithFormat: @"%d", page];
+    [User findRemoteWithCallback:@selector(onLoadUsers:) delegate:self params:[NSString stringWithFormat:@"?page=%@",strPage]];
     [fetchBtn startAnimating];
-    [self performSelectorInBackground:@selector(loadUsers) withObject:nil];
+
 }
 
 
@@ -247,12 +253,9 @@ forRowAtIndexPath:(NSIndexPath *)indexPath {
     CGRect frame = CGRectMake(0, 0, 320, 100);
 	
     fetchBtn = [[FetchButtonView alloc] initWithFrame:frame];
-    [fetchBtn addTarget:self action:@selector(fetchHandler) forControlEvents:UIControlEventTouchUpInside];
+    [fetchBtn addTarget:self action:@selector(fetchUsers) forControlEvents:UIControlEventTouchUpInside];
 	
-    //
-    // Create a header view. Wrap it in a container to allow us to position
-    // it better.
-    //
+   
     UIView *containerView =	[[[UIView alloc]	  initWithFrame:CGRectMake(0, 0, 300, 60)]	 autorelease];
     UILabel *headerLabel =	[[[UILabel alloc]	  initWithFrame:CGRectMake(10, 20, 300, 40)]	 autorelease];
     headerLabel.text = NSLocalizedString(@"Header for the table", @"");
